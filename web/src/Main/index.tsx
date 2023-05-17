@@ -5,57 +5,68 @@ import axios from 'axios'
 import { gql, useQuery } from "@apollo/client";
 
 interface reposProps {
-    id: string,
-    name: string,
-    description: string,
-    pushed_at: string,
-    html_url: string,
-    fork: number,
-    license: object,
-    archived: boolean
+    repos: {
+        id: string,
+        name: string,
+        description: string,
+        pushed_at: string,
+        html_url: string,
+        fork: number,
+        license: object,
+        archived: boolean
+    }[]
 }
 
 const GET_REPOS = gql`
 query{
-    gitHubRepository {
-        name id description
+    repos {
+        name
+        description
+        pushed_at
+        html_url
+        fork
+        license{
+          key name url
+        }
+        archived
     }
 }
 `
 
 export function Main() {
-    const { loading, data } = useQuery(GET_REPOS)
-    const [repos, setRepos] = useState<reposProps[]>([])
+    const { loading, data } = useQuery<reposProps>(GET_REPOS)
+    //const [repos, setRepos] = useState<reposProps[]>([])
     const [search, setSearch] = useState('');
     const [order, setOrder] = useState('date');
     const [filterType, setFilterType] = useState('');
 
-    //const { gitHubRepository } = data
-    //console.log(gitHubRepository)
-    console.log(repos)
+    const { repos } = data == null ? loading : data
+    console.log(data)
+    //console.log(repos)
 
-    useEffect(() => {
-        fetch('https://api.github.com/users/gabrielviol/repos')
-            .then(response => response.json())
-            .then(data => setRepos(data))
-    }, [])
+    // useEffect(() => {
+    //     fetch('https://api.github.com/users/gabrielviol/repos')
+    //         .then(response => response.json())
+    //         .then(data => setRepos(data))
+    // }, [])
+
 
     const dateFormatter = new Intl.DateTimeFormat('pt-BR', { dateStyle: "medium" });
 
-    const lowerSearch = search.toLocaleLowerCase();
+    // const lowerSearch = search.toLocaleLowerCase();
 
-    const filterSearch = search.length > 0 ? repos.filter(repo => repo.name.toLowerCase().includes(lowerSearch)) : repos;
+    // const filterSearch = search.length > 0 ? repos.filter(repo => repo.name.toLowerCase().includes(lowerSearch)) : repos;
 
-    const filterForType =
-        filterType === 'forks' ? filterSearch.filter(repo => repo.fork > 0) :
-            filterType === 'license' ? filterSearch.filter(repo => repo.license != null) :
-                filterType === 'archived' ? filterSearch.filter(repo => repo.archived == true) :
-                    filterSearch
+    // const filterForType =
+    //     filterType === 'forks' ? filterSearch.filter(repo => repo.fork > 0) :
+    //         filterType === 'license' ? filterSearch.filter(repo => repo.license != null) :
+    //             filterType === 'archived' ? filterSearch.filter(repo => repo.archived == true) :
+    //                 filterSearch
 
 
-    order === 'name' ?
-        filterForType.sort((a, b) => { return a.name.localeCompare(b.name) }) :
-        filterForType.sort((a, b) => { return b.pushed_at.localeCompare(a.pushed_at) });
+    // order === 'name' ?
+    //     filterForType.sort((a, b) => { return a.name.localeCompare(b.name) }) :
+    //     filterForType.sort((a, b) => { return b.pushed_at.localeCompare(a.pushed_at) });
 
     return (
         <Container>
@@ -83,7 +94,7 @@ export function Main() {
 
             </ContainerSearch>
             <ContainerRepos>
-                {filterForType.map(repository => {
+                {repos?.map(repository => {
                     return (
                         <ContentRepos key={repository.id}>
                             <div>

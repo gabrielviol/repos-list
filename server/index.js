@@ -2,19 +2,33 @@ const { ApolloServer, gql } = require('apollo-server');
 const { default: axios } = require('axios');
 
 const typeDefs = gql`
-    type repos {
-        id: String,
+    type repositories {
+        id: String!,
         name: String,
-        description: String
+        description: String,
+        pushed_at: String,
+        html_url: String,
+        fork: Int,
+        license: License,
+        archived: Boolean
     }
+
+    type License{
+        key: String,
+        name: String,
+        node_id: String,
+        spdx_id: String,
+        url: String
+    }
+
 	type Query {
-		gitHubRepository: [repos]
+		repos: [repositories]
 	}
 `;
 
 const resolvers = {
     Query: {
-        async gitHubRepository() {
+        async repos() {
             const response = await axios.get(`https://api.github.com/users/gabrielviol/repos`)
                 .then(response => response.data)
             return response
